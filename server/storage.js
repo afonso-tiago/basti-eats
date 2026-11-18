@@ -118,10 +118,18 @@ function localStore(file) {
 }
 
 export function getStore() {
-  const { UPSTASH_REDIS_REST_URL: url, UPSTASH_REDIS_REST_TOKEN: token, VERCEL, NODE_ENV, BOARD_DATA_FILE } = process.env;
-  if (url && token) return redisStore(url, token);
-  if (url || token || VERCEL || NODE_ENV === 'production') {
-    throw new Error('Configure UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN.');
+  const {
+    KV_REST_API_URL, KV_REST_API_TOKEN,
+    UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN,
+    VERCEL, NODE_ENV, BOARD_DATA_FILE,
+  } = process.env;
+
+  if (KV_REST_API_URL && KV_REST_API_TOKEN) return redisStore(KV_REST_API_URL, KV_REST_API_TOKEN);
+  if (UPSTASH_REDIS_REST_URL && UPSTASH_REDIS_REST_TOKEN) {
+    return redisStore(UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN);
+  }
+  if (KV_REST_API_URL || KV_REST_API_TOKEN || UPSTASH_REDIS_REST_URL || UPSTASH_REDIS_REST_TOKEN || VERCEL || NODE_ENV === 'production') {
+    throw new Error('Configure KV_REST_API_URL and KV_REST_API_TOKEN, or UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN.');
   }
   return localStore(resolve(BOARD_DATA_FILE || '.data/requests.json'));
 }

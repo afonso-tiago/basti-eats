@@ -21,7 +21,7 @@ The default timezone is `Europe/Berlin`. To change it, set `BOARD_TIME_ZONE` in 
 ## Deploy to Vercel
 
 1. Import the repository in Vercel using the **Other** framework preset. The project serves `public/` directly and uses the Node.js Function at `/api/board`.
-2. Connect [Upstash Redis](https://vercel.com/marketplace/upstash) or set `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` from an Upstash Redis database. Apply the variables to the Vercel environments you plan to use. See `.env.example` for the variable names.
+2. Connect [Upstash Redis](https://vercel.com/marketplace/upstash) to the project. The app uses the integration's `KV_REST_API_URL` and `KV_REST_API_TOKEN` variables. For a direct Upstash connection, set `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` instead. Apply the credentials to the Vercel environments you plan to use.
 3. Deploy. The Redis board starts empty. To test against Redis locally, put the same variables in `.env` and run `npm run dev`.
 
 Anyone with the board URL can enter any name. Payment controls match names without regard to capitalization or extra spaces. Use a distinct name if someone on the team shares yours.
