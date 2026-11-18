@@ -1,13 +1,15 @@
 <!doctype html>
-<html lang="en">
+<html lang="de">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
   <meta name="theme-color" content="#faf8f3">
-  <meta name="description" content="Track team food requests and payments.">
-  <title>Food requests</title>
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <meta name="description" content="Essensbestellungen und Zahlungen im Team verfolgen.">
+  <title>Essensbestellungen</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icons/fox-192.png" type="image/png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/icons/fox-180.png" sizes="180x180">
   <script src="/theme.js"></script>
   <link rel="stylesheet" href="/style.css">
   <script type="module" src="/app.js"></script>
@@ -27,26 +29,27 @@
   </svg>
   <header class="topbar" id="topbar" hidden>
     <div class="topbar-content">
-      <nav class="navigation" id="navigation" aria-label="Request views" hidden>
-        <a href="#today" id="today-link" aria-label="Today" title="Today" aria-current="page"><svg class="icon" aria-hidden="true"><use href="#calendar"/></svg></a>
-        <a href="#history" id="history-link" aria-label="History" title="History"><svg class="icon" aria-hidden="true"><use href="#history"/></svg></a>
+      <nav class="navigation" id="navigation" aria-label="Bestellübersicht" hidden>
+        <a href="#today" id="today-link" aria-label="Heute" title="Heute" aria-current="page"><svg class="icon" aria-hidden="true"><use href="#calendar"/></svg></a>
+        <a href="#history" id="history-link" aria-label="Verlauf" title="Verlauf"><svg class="icon" aria-hidden="true"><use href="#history"/></svg></a>
       </nav>
       <div class="profile">
         <h1 class="profile-name" id="profile-name" tabindex="-1" dir="auto"></h1>
-        <button class="logout-button" id="logout-button" type="button" aria-label="Log out" title="Log out"><svg class="icon" aria-hidden="true"><use href="#log-out"/></svg></button>
-        <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Theme is Auto. Switch to Light." title="Theme is Auto. Switch to Light."><svg class="icon" aria-hidden="true"><use href="#theme-auto"/></svg></button>
+        <button class="logout-button" id="logout-button" type="button" aria-label="Abmelden" title="Abmelden"><svg class="icon" aria-hidden="true"><use href="#log-out"/></svg></button>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Darstellung ist auf „Automatisch“ eingestellt. Zu „Hell“ wechseln." title="Darstellung ist auf „Automatisch“ eingestellt. Zu „Hell“ wechseln."><svg class="icon" aria-hidden="true"><use href="#theme-auto"/></svg></button>
       </div>
     </div>
   </header>
 
   <main class="content">
     <section class="composer welcome" id="welcome" aria-labelledby="welcome-title" hidden>
-      <h1 id="welcome-title">What’s your name?</h1>
-      <form id="name-form">
-        <label for="user-name">Your name</label>
+      <img class="welcome-mascot" src="/images/basti-eats-1.webp" width="336" height="378" alt="" loading="lazy" decoding="async">
+      <h1 id="welcome-title">Wie heißt du?</h1>
+      <form id="name-form" novalidate>
+        <label for="user-name">Dein Name</label>
         <div class="inline-form">
-          <input id="user-name" name="name" type="text" autocomplete="name" required>
-          <button class="add-button" type="submit">Continue</button>
+          <input id="user-name" name="name" type="text" maxlength="200" autocomplete="name" required>
+          <button class="add-button" type="submit">Weiter</button>
         </div>
       </form>
       <p class="notice" id="name-notice" role="status"></p>
@@ -55,42 +58,43 @@
     <div id="board-view" hidden>
       <header class="page-header" id="board-heading">
         <p class="page-date" id="page-date"><svg class="icon" aria-hidden="true"><use href="#calendar"/></svg><span id="date-label"></span></p>
-        <h2 id="history-title" hidden>Request history</h2>
+        <h2 id="history-title" hidden>Bestellverlauf</h2>
       </header>
 
       <div id="composer" class="composer">
-        <form id="request-form" class="inline-form" aria-label="New request">
+        <form id="request-form" class="inline-form" aria-label="Neue Bestellung" novalidate>
           <div class="request-field">
-            <label class="sr-only" for="request-text">Your food request</label>
-            <input id="request-text" name="text" type="text" maxlength="240" required autocomplete="off" role="combobox" aria-autocomplete="list" aria-controls="request-suggestions" aria-expanded="false">
-            <ul id="request-suggestions" class="suggestions" role="listbox" aria-label="Previous food requests" hidden></ul>
+            <label class="sr-only" for="request-text">Deine Bestellung</label>
+            <input id="request-text" name="text" type="text" maxlength="200" required autocomplete="off" role="combobox" aria-autocomplete="list" aria-controls="request-suggestions" aria-expanded="false">
+            <ul id="request-suggestions" class="suggestions" role="listbox" aria-label="Frühere Bestellungen" hidden></ul>
           </div>
-          <button class="add-button request-submit" id="add-button" type="submit" aria-label="Add request" title="Add request" disabled><svg class="icon" aria-hidden="true"><use href="#plus"/></svg></button>
+          <button class="add-button request-submit" id="add-button" type="submit" aria-label="Bestellung hinzufügen" title="Bestellung hinzufügen" disabled><svg class="icon" aria-hidden="true"><use href="#plus"/></svg></button>
         </form>
       </div>
 
       <p id="notice" class="notice" role="status"></p>
       <section class="own-requests" id="own-requests" aria-labelledby="own-requests-heading" hidden>
-        <h2 id="own-requests-heading">Your requests today</h2>
+        <h2 id="own-requests-heading">Deine Bestellungen heute</h2>
         <div id="own-request-list"></div>
       </section>
-      <div id="startup" class="requests empty-state" role="status">Loading requests…</div>
-      <section class="requests" aria-label="Food requests" aria-busy="true" id="requests">
+      <div id="startup" class="requests empty-state" role="status">Bestellungen werden geladen …</div>
+      <section class="requests" aria-label="Essensbestellungen" aria-busy="true" id="requests">
         <div class="section-heading" id="today-heading">
-          <h2>Today's requests</h2>
+          <h2>Heutige Bestellungen</h2>
           <span class="request-count" id="request-count" hidden></span>
         </div>
-        <div id="request-tabs" class="request-tabs" role="tablist" aria-label="Group requests by" hidden>
-          <button id="requests-tab" type="button" role="tab" aria-selected="true" aria-controls="requests-panel" data-view="requests">Requests</button>
-          <button id="payments-tab" type="button" role="tab" aria-selected="false" aria-controls="payments-panel" data-view="payments" tabindex="-1">Payments</button>
+        <div id="request-tabs" class="request-tabs" role="tablist" aria-label="Bestellungen gruppieren" hidden>
+          <button id="requests-tab" type="button" role="tab" aria-selected="true" aria-controls="requests-panel" data-view="requests">Bestellungen</button>
+          <button id="payments-tab" type="button" role="tab" aria-selected="false" aria-controls="payments-panel" data-view="payments" tabindex="-1">Zahlungen</button>
         </div>
         <div id="request-groups">
           <div id="requests-panel" role="tabpanel" aria-labelledby="requests-tab" hidden></div>
           <div id="payments-panel" role="tabpanel" aria-labelledby="payments-tab" hidden></div>
         </div>
       </section>
+      <img class="delivery-mascot" src="/images/basti-eats-2.webp" width="420" height="328" alt="" loading="lazy" decoding="async">
     </div>
-    <noscript><p>Enable JavaScript to use the request board.</p></noscript>
+    <noscript><p>Aktiviere JavaScript, um die Bestellübersicht zu nutzen.</p></noscript>
   </main>
 </body>
 </html>

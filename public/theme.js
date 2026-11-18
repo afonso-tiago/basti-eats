@@ -1,6 +1,7 @@
 (() => {
   const storageKey = 'basti-eats:theme';
   const modes = ['light', 'dark', 'auto'];
+  const labels = { light: 'Hell', dark: 'Dunkel', auto: 'Automatisch' };
   const deviceTheme = matchMedia('(prefers-color-scheme: dark)');
   const browserColor = document.querySelector('meta[name="theme-color"]');
 
@@ -29,10 +30,8 @@
     const toggle = document.getElementById('theme-toggle');
     const icon = toggle.querySelector('use');
     const nextMode = () => modes[(modes.indexOf(mode) + 1) % modes.length];
-    const capitalize = (value) => value[0].toUpperCase() + value.slice(1);
-
     function renderButton() {
-      const description = `Theme is ${capitalize(mode)}. Switch to ${capitalize(nextMode())}.`;
+      const description = `Darstellung ist auf „${labels[mode]}“ eingestellt. Zu „${labels[nextMode()]}“ wechseln.`;
       toggle.setAttribute('aria-label', description);
       toggle.title = description;
       icon.setAttribute('href', `#theme-${mode}`);

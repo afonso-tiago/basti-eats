@@ -64,12 +64,12 @@ function demoRequests() {
     return boardDay(new Date(timestamp)) === today ? timestamp : now;
   }
   const sample = [
-    ['Basti', 'Spicy chicken bowl, extra avocado', false, minutesAgo(18)],
-    ['Alex', 'Margherita pizza with a side salad', true, minutesAgo(26)],
-    ['Sam', 'Falafel wrap, no onions', false, minutesAgo(38)],
-    ['Kim', 'Miso ramen with extra mushrooms', true, minutesAgo(52)],
-    ['Alex', 'Veggie burrito with guacamole', true, past],
-    ['Basti', 'Chicken katsu curry', true, past - 15 * minute],
+    ['Basti', 'Scharfe Hähnchen-Bowl mit extra Avocado', false, minutesAgo(18)],
+    ['Alex', 'Pizza Margherita mit Beilagensalat', true, minutesAgo(26)],
+    ['Sam', 'Falafel-Wrap ohne Zwiebeln', false, minutesAgo(38)],
+    ['Kim', 'Miso-Ramen mit extra Pilzen', true, minutesAgo(52)],
+    ['Alex', 'Gemüse-Burrito mit Guacamole', true, past],
+    ['Basti', 'Katsu-Curry mit Hähnchen', true, past - 15 * minute],
   ];
   return sample.map(([userName, text, paid, date]) => ({
     id: randomUUID(), userId: userFromName(userName).id, userName, text, paid, createdAt: new Date(date).toISOString(),

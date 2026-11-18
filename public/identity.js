@@ -1,3 +1,5 @@
+export const maxNameLength = 200;
+
 export function userFromName(value) {
   if (typeof value !== 'string') return null;
   const name = value.replace(/\p{Surrogate}/gu, '\uFFFD').normalize('NFC').trim().replace(/\s+/gu, ' ');

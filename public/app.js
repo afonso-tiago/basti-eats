@@ -1,7 +1,7 @@
-import { userFromName } from './identity.js';
+import { maxNameLength, userFromName } from './identity.js';
 import { celebrateRequest } from './ingredient-confetti.js';
 import { setupRequestSuggestions } from './request-suggestions.js';
-import { requestTextKey } from './request-text.js';
+import { maxRequestLength, requestTextKey } from './request-text.js';
 
 const byId = (id) => document.getElementById(id);
 const nameForm = byId('name-form');
@@ -15,8 +15,8 @@ const groups = byId('request-groups');
 const viewTabs = byId('request-tabs');
 const tabButtons = [...viewTabs.querySelectorAll('[role="tab"]')];
 const panels = [...groups.children];
-const fullDate = new Intl.DateTimeFormat('en', { dateStyle: 'full', timeZone: 'UTC' });
-const todayDate = new Intl.DateTimeFormat('en', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' });
+const fullDate = new Intl.DateTimeFormat('de-DE', { dateStyle: 'full', timeZone: 'UTC' });
+const todayDate = new Intl.DateTimeFormat('de-DE', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' });
 const svgNamespace = 'http://www.w3.org/2000/svg';
 const avatarColors = ['peach', 'lilac', 'sage', 'yellow'];
 const userStorageKey = 'basti-eats:user-name';
@@ -35,7 +35,8 @@ const suggestions = setupRequestSuggestions(input, byId('request-suggestions'), 
 
 function readStoredUser() {
   try {
-    return userFromName(localStorage.getItem(userStorageKey));
+    const user = userFromName(localStorage.getItem(userStorageKey));
+    return user && user.name.length <= maxNameLength ? user : null;
   } catch {
     return null;
   }
@@ -98,7 +99,7 @@ function formatDay(day, formatter = fullDate) {
 }
 
 function countLabel(count) {
-  return `${count} ${count === 1 ? 'request' : 'requests'}`;
+  return `${count} ${count === 1 ? 'Bestellung' : 'Bestellungen'}`;
 }
 
 function announce(message, visible = false) {
@@ -108,15 +109,25 @@ function announce(message, visible = false) {
 }
 
 async function api(method, body) {
-  const response = await fetch('/api/board', {
-    method,
-    credentials: 'omit',
-    headers: body ? { 'Content-Type': 'application/json' } : undefined,
-    body: body ? JSON.stringify(body) : undefined,
-    signal: AbortSignal.timeout(12_000),
-  });
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'Could not reach the request board.');
+  const unavailable = navigator.onLine
+    ? 'Die Bestellübersicht ist gerade nicht erreichbar.'
+    : 'Du bist offline. Für Bestellungen brauchst du eine Internetverbindung.';
+  let response;
+  let data;
+  try {
+    response = await fetch('/api/board', {
+      method,
+      credentials: 'omit',
+      headers: body ? { 'Content-Type': 'application/json' } : undefined,
+      body: body ? JSON.stringify(body) : undefined,
+      signal: AbortSignal.timeout(12_000),
+    });
+    data = await response.json();
+  } catch (error) {
+    if (error.name === 'TimeoutError') throw error;
+    throw new Error(unavailable);
+  }
+  if (!response.ok) throw new Error(data?.error || unavailable);
   return data;
 }
 
@@ -142,14 +153,14 @@ function paymentBadge({ day, userId, userName }, paid) {
     if (paid) indicator.append(icon('check'));
     badge.append(indicator);
   }
-  badge.append(paid ? 'Paid' : 'Unpaid');
+  badge.append(paid ? 'Bezahlt' : 'Offen');
 
   if (own) {
     badge.type = 'button';
     badge.dataset.payment = `${day}:${userId}`;
-    badge.setAttribute('aria-label', `Paid status for ${userName} on ${formatDay(day)}`);
+    badge.setAttribute('aria-label', `Zahlungsstatus für ${userName} am ${formatDay(day)}`);
     badge.setAttribute('aria-pressed', String(paid));
-    badge.title = paid ? 'Mark this order as unpaid' : 'Mark this order as paid';
+    badge.title = paid ? 'Bestellung als offen markieren' : 'Bestellung als bezahlt markieren';
     badge.addEventListener('click', () => savePayment(day, !paid));
   }
   return badge;
@@ -177,8 +188,8 @@ function requestList(items, { removable = false } = {}) {
       const remove = textElement('button', 'remove-request', '');
       remove.type = 'button';
       remove.dataset.removeRequest = item.id;
-      remove.setAttribute('aria-label', `Remove ${item.text}`);
-      remove.title = 'Remove request';
+      remove.setAttribute('aria-label', `Bestellung „${item.text}“ entfernen`);
+      remove.title = 'Bestellung entfernen';
       remove.append(icon('trash'));
       remove.addEventListener('click', () => removeRequest(item));
       row.append(remove);
@@ -289,7 +300,7 @@ function renderRequests(items, history) {
     panel.replaceChildren();
   }
   if (!items.length) {
-    activePanel.append(textElement('div', 'empty-state', history ? 'No past requests yet.' : 'No requests for today yet.'));
+    activePanel.append(textElement('div', 'empty-state', history ? 'Noch keine früheren Bestellungen.' : 'Noch keine Bestellungen für heute.'));
   } else if (history) {
     for (const [day, requests] of groupBy(items, (item) => item.day)) {
       const group = textElement('section', 'day-group', '');
@@ -367,17 +378,20 @@ async function refresh() {
     const next = await api('GET');
     if (started !== revision || JSON.stringify(next) === JSON.stringify(board)) return;
     if (!board || board.timeZone !== next.timeZone) {
-      clock = new Intl.DateTimeFormat('en', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: next.timeZone });
+      clock = new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: next.timeZone });
     }
     board = next;
     renderView();
     suggestions.refresh();
   } catch {
     if (board) return;
-    const retry = textElement('button', 'retry-button', 'Try again');
+    const retry = textElement('button', 'retry-button', 'Erneut versuchen');
     retry.type = 'button';
     retry.addEventListener('click', refresh);
-    byId('startup').replaceChildren('Could not load requests.', retry);
+    const message = navigator.onLine
+      ? 'Die Bestellungen konnten nicht geladen werden.'
+      : 'Du bist offline. Die Bestellungen werden geladen, sobald du wieder online bist.';
+    byId('startup').replaceChildren(message, ' ', retry);
   } finally {
     refreshing = false;
     byId('requests').setAttribute('aria-busy', 'false');
@@ -394,7 +408,7 @@ async function change(kind, operation) {
   try {
     await operation();
   } catch (error) {
-    announce(error.name === 'TimeoutError' ? 'The board took too long to respond. Try again.' : error.message, true);
+    announce(error.name === 'TimeoutError' ? 'Die Anfrage hat zu lange gedauert. Versuche es erneut.' : error.message, true);
   } finally {
     pending.delete(kind);
     renderControls();
@@ -405,15 +419,16 @@ async function change(kind, operation) {
 nameForm.addEventListener('submit', (event) => {
   event.preventDefault();
   const user = userFromName(nameInput.value);
-  if (!user) {
-    announce('Enter your name first.', true);
+  if (!user || user.name.length > maxNameLength) {
+    const message = user ? `Der Name darf höchstens ${maxNameLength} Zeichen lang sein.` : 'Gib zuerst deinen Namen ein.';
+    announce(message, true);
     nameInput.focus();
     return;
   }
   try {
     localStorage.setItem(userStorageKey, user.name);
   } catch {
-    announce('Could not save your name in this browser.', true);
+    announce('Dein Name konnte in diesem Browser nicht gespeichert werden.', true);
     return;
   }
   if (historyView()) window.history.replaceState(window.history.state, '', '#today');
@@ -425,7 +440,7 @@ logoutButton.addEventListener('click', () => {
   try {
     localStorage.removeItem(userStorageKey);
   } catch {
-    announce('Could not clear your saved name in this browser.', true);
+    announce('Dein gespeicherter Name konnte in diesem Browser nicht gelöscht werden.', true);
     return;
   }
   setCurrentUser(null);
@@ -437,8 +452,9 @@ form.addEventListener('submit', (event) => {
   event.preventDefault();
   if (!currentUser) return;
   const text = input.value.trim();
-  if (!text) {
-    announce('Enter a food request first.', true);
+  if (!text || text.length > maxRequestLength) {
+    const message = text ? `Die Bestellung darf höchstens ${maxRequestLength} Zeichen lang sein.` : 'Gib zuerst eine Bestellung ein.';
+    announce(message, true);
     input.focus();
     return;
   }
@@ -453,7 +469,7 @@ form.addEventListener('submit', (event) => {
         if (request.day > board.today) board.today = request.day;
       }
       renderView();
-      announce('Request added.', !board);
+      announce('Bestellung hinzugefügt.', !board);
       celebrateRequest(addButton);
       if (!historyView() && document.activeElement === document.body) input.focus();
     } finally {
@@ -470,7 +486,7 @@ function removeRequest(item) {
     board.requests = board.requests.filter((request) => request.id !== id);
     renderView();
     suggestions.refresh();
-    announce('Request removed.');
+    announce('Bestellung entfernt.');
     if (restoreFocus && currentUser && !historyView()) {
       (ownList.querySelector('button[data-remove-request]') ?? addButton).focus();
     }
@@ -486,7 +502,7 @@ function savePayment(day, paid) {
       if (updated.has(request.id)) request.paid = result.paid;
     }
     renderView();
-    announce(result.paid ? 'Order marked as paid.' : 'Order marked as unpaid.');
+    announce(result.paid ? 'Bestellung als bezahlt markiert.' : 'Bestellung als offen markiert.');
   });
 }
 
@@ -521,7 +537,12 @@ window.addEventListener('hashchange', () => {
   window.scrollTo(0, 0);
 });
 window.addEventListener('focus', refresh);
+window.addEventListener('online', refresh);
 window.setInterval(refresh, 30_000);
 restoreRequestDraft();
 renderView();
 refresh();
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js').catch((error) => console.error('Service worker registration failed:', error));
+}

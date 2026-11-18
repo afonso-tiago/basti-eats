@@ -6,6 +6,8 @@ The request field remembers your last text in local storage. Click it to see dis
 
 The theme button next to Log out cycles through Light, Dark, and Auto. Auto follows your device setting. Your choice is remembered in this browser.
 
+Basti Eats can be installed from a supported browser over HTTPS or localhost. After the first visit, the app interface is available offline. Viewing shared requests and submitting changes require a connection.
+
 ## Run locally
 
 With Node.js 22, run:

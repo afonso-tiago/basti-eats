@@ -1,0 +1,16 @@
+{
+  "id": "/",
+  "name": "Basti Eats",
+  "short_name": "Basti Eats",
+  "description": "Essensbestellungen und Zahlungen im Team verfolgen.",
+  "lang": "de",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#faf8f3",
+  "theme_color": "#faf8f3",
+  "icons": [
+    { "src": "/icons/fox-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/fox-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

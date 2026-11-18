@@ -172,10 +172,22 @@ h1 { font: 700 clamp(2.45rem, 5vw, 4.1rem)/1.03 var(--heading); letter-spacing: 
 .composer { border: 1px solid var(--tint-border); border-radius: 19px; padding: 17px 20px; background: var(--tint); }
 .section-heading h2 { font: 700 1.65rem/1.17 var(--heading); letter-spacing: -.03em; }
 .inline-form { display: flex; align-items: start; gap: 9px; }
-.welcome { max-width: 570px; margin: 32px auto 0; padding: 25px 28px; }
-.welcome form { margin-top: 15px; }
-.welcome h1 { font-size: clamp(2rem, 5vw, 3.1rem); }
+.welcome {
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr);
+  grid-template-areas: 'mascot title' 'mascot form' 'mascot notice';
+  column-gap: 20px;
+  align-items: center;
+  max-width: 570px;
+  margin: 32px auto 0;
+  padding: 25px 28px;
+}
+.welcome-mascot { grid-area: mascot; display: block; width: 100%; height: auto; }
+.welcome form { grid-area: form; margin-top: 15px; }
+.welcome h1 { grid-area: title; font-size: clamp(1.8rem, 4.8vw, 2.7rem); }
+.welcome .notice { grid-area: notice; }
 .welcome label { display: block; margin-bottom: 7px; font-size: .89rem; font-weight: 650; }
+.delivery-mascot { display: block; width: clamp(96px, 18vw, 138px); height: auto; margin: 28px auto 0; }
 .composer input {
   width: 100%;
   min-width: 0;
@@ -405,7 +417,12 @@ button.payment-badge:not(:disabled):hover { border-color: currentColor; }
   .page-date .icon { width: 14px; height: 14px; }
   .composer { padding: 12px; border-radius: 14px; }
   .section-heading h2 { font-size: 1.4rem; }
-  .welcome { padding: 19px 16px 16px; }
+  .welcome {
+    grid-template-columns: 68px minmax(0, 1fr);
+    grid-template-areas: 'mascot title' 'form form' 'notice notice';
+    column-gap: 12px;
+    padding: 16px;
+  }
   .welcome form { margin-top: 12px; }
   .welcome .inline-form { flex-direction: column; align-items: stretch; }
   .welcome .add-button { min-height: 44px; }
